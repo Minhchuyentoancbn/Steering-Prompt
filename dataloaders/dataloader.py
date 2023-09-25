@@ -11,10 +11,13 @@ from .utils import download_url, check_integrity
 
 class iDataset(data.Dataset):
     
-    def __init__(self, root,
-                train=True, transform=None,
-                download_flag=False, lab=True, swap_dset = None, 
-                tasks=None, seed=-1, rand_split=False, validation=False, kfolds=5):
+    def __init__(
+            self, root,
+            train=True, transform=None,
+            download_flag=False, 
+            tasks=None, seed=-1,  
+            validation=False
+        ):
 
         # process rest of args
         os.makedirs(root, exist_ok=True)
@@ -30,6 +33,8 @@ class iDataset(data.Dataset):
         # load dataset
         self.load()
         self.num_classes = len(np.unique(self.targets))
+        self.data = np.asarray(self.data)
+        self.targets = np.asarray(self.targets)
 
         # remap labels to match task order
         c = 0
@@ -37,16 +42,11 @@ class iDataset(data.Dataset):
         self.class_mapping[-1] = -1
         for task in self.tasks:
             for k in task:
-                self.class_mapping[k] = c
+                self.class_mapping[k] = c  # class k is the c-th class seen so far
                 c += 1
-
-        # targets as numpy.array
-        self.data = np.asarray(self.data)
-        self.targets = np.asarray(self.targets)
 
         # if validation
         if self.validation:
-            
             # shuffle
             state = np.random.get_state()
             np.random.seed(self.seed)
@@ -73,47 +73,44 @@ class iDataset(data.Dataset):
                     if True:
                         locs = np.isin(self.targets, task).nonzero()[0]
                         self.archive.append((self.data[locs].copy(), self.targets[locs].copy()))
-
-            # val set
-            else:
+            else:  # val set
                 self.archive = []
                 for task in self.tasks:
                     if True:
                         locs = np.isin(self.targets, task).nonzero()[0]
                         self.archive.append((self.data[locs].copy(), self.targets[locs].copy()))
 
-        # else
-        else:
+        else:  # if not validation
             self.archive = []
             for task in self.tasks:
-                if True:
-                    locs = np.isin(self.targets, task).nonzero()[0]
-                    self.archive.append((self.data[locs].copy(), self.targets[locs].copy()))
+                locs = np.isin(self.targets, task).nonzero()[0]
+                self.archive.append((self.data[locs].copy(), self.targets[locs].copy()))
 
-        if self.train:
-            self.coreset = (np.zeros(0, dtype=self.data.dtype), np.zeros(0, dtype=self.targets.dtype))
 
-    def __getitem__(self, index, simple = False):
+    def __getitem__(self, index):
         """
-        Args:
-            index (int): Index
         Returns:
             tuple: (image, target) where target is index of the target class
         """
         img, target = self.data[index], self.targets[index]
-
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
         img = Image.fromarray(img)
-
         if self.transform is not None:
             img = self.transform(img)
-
         return img, self.class_mapping[target], self.t
 
 
     def load_dataset(self, t, train=True):
-        
+        """
+        Loads the dataset.
+
+        Arguments:
+        ----------
+        t : int
+            Task id.
+
+        train : bool
+            If True, load data for task t. If False, load data for all tasks <= t.
+        """
         if train:
             self.data, self.targets = self.archive[t] 
         else:
@@ -121,40 +118,6 @@ class iDataset(data.Dataset):
             self.targets = np.concatenate([self.archive[s][1] for s in range(t+1)], axis=0)
         self.t = t
 
-    # def append_coreset(self, only=False, interp=False):
-    #     len_core = len(self.coreset[0])
-    #     if self.train and (len_core > 0):
-    #         if only:
-    #             self.data, self.targets = self.coreset
-    #         else:
-    #             len_data = len(self.data)
-    #             sample_ind = np.random.choice(len_core, len_data)
-    #             self.data = np.concatenate([self.data, self.coreset[0][sample_ind]], axis=0)
-    #             self.targets = np.concatenate([self.targets, self.coreset[1][sample_ind]], axis=0)
-
-    # def update_coreset(self, coreset_size, seen):
-    #     num_data_per = coreset_size // len(seen)
-    #     remainder = coreset_size % len(seen)
-    #     data = []
-    #     targets = []
-        
-    #     # random coreset management; latest classes take memory remainder
-    #     # coreset selection without affecting RNG state
-    #     state = np.random.get_state()
-    #     np.random.seed(self.seed)
-    #     for k in reversed(seen):
-    #         mapped_targets = [self.class_mapping[self.targets[i]] for i in range(len(self.targets))]
-    #         locs = (mapped_targets == k).nonzero()[0]
-    #         if (remainder > 0) and (len(locs) > num_data_per):
-    #             num_data_k = num_data_per + 1
-    #             remainder -= 1
-    #         else:
-    #             num_data_k = min(len(locs), num_data_per)
-    #         locs_chosen = locs[np.random.choice(len(locs), num_data_k, replace=False)]
-    #         data.append([self.data[loc] for loc in locs_chosen])
-    #         targets.append([self.targets[loc] for loc in locs_chosen])
-    #     self.coreset = (np.concatenate(list(reversed(data)), axis=0), np.concatenate(list(reversed(targets)), axis=0))
-    #     np.random.set_state(state)
 
     def load(self):
         pass
