@@ -541,6 +541,7 @@ class ViTFree(nn.Module):
         # classifier
         self.value_prototypes = torch.zeros(num_classes, 768)
         self.prototype_counts = torch.zeros(num_classes)
+        self.prototype_variances = torch.zeros(num_classes, 768)
 
         # create prompting module
         if self.prompt_flag == 'cpp':
@@ -553,7 +554,11 @@ class ViTFree(nn.Module):
     def forward(self, x, pen=False, train=False):
         if self.prompt is not None:
             q = self.get_query_features(x)
-            out, _ = self.feat(x, prompt=self.prompt, q=q, train=train, task_id=self.task_id)
+            if train:
+                out, _ = self.feat(x, prompt=self.prompt, q=q, train=train, task_id=self.task_id)
+            else:
+                with torch.no_grad():
+                    out, _ = self.feat(x, prompt=self.prompt, q=q, train=train, task_id=self.task_id)
             out = out[:, 0, :]
             if not pen:
                 out = self.prompt.mlp_head(out)
@@ -608,7 +613,7 @@ class ViTFree(nn.Module):
             values[:, i, :] = out
 
         # Compute the distance between value features and value prototypes
-        value_prototypes = self.value_prototypes[:max_idx] / self.prototype_counts[:max_idx]
+        value_prototypes = self.value_prototypes[:max_idx]
         # Compute distance of each value prototype to each value features
         # values: (B, r, d_k), value_prototypes: (C, d_k) -> (B, C)
         dist = torch.cdist(values, value_prototypes)  # (B, r, C)
@@ -636,12 +641,24 @@ class ViTFree(nn.Module):
         self.prompt.compute_centroids(X, y)
     
 
-    def update_value_protypes(self, x, y):
+    def update_protypes(self, x, y):
         """
-        Update the value prototypes
+        Update the prototypes
         """
-        raise NotImplementedError("This function is not implemented yet")
-        out_features = self.forward(x, pen=True, train=False)
+        with torch.no_grad():
+            out_features = self.forward(x, pen=True, train=False)
+        old_counts = self.prototype_counts
+        self.prototype_counts += torch.bincount(y, minlength=self.num_classes).float()
+        
+        # Update the value prototypes
+        mask = torch.zeros(self.num_classes, x.shape[0])
+        mask[y, torch.arange(x.shape[0])] = 1
+        self.value_prototypes = self.value_prototypes * old_counts.unsqueeze(1) + \
+                                mask.mm(out_features)
+        self.value_prototypes /= self.prototype_counts.unsqueeze(1)
+        self.prototype_variances = self.prototype_variances * old_counts.unsqueeze(1) + \
+                                   mask.mm(out_features ** 2)
+        self.prototype_variances /= self.prototype_counts.unsqueeze(1)
         
 
 def vit_pt_imnet(out_dim, prompt_flag = 'None', prompt_param=None):
