@@ -678,4 +678,5 @@ def vit_pt_imnet(out_dim, prompt_flag = 'None', prompt_param=None):
     return ViTZoo(num_classes=out_dim, pt=True, prompt_flag=prompt_flag, prompt_param=prompt_param)
 
 def vit_free_imnet(out_dim, prompt_flag = 'None', prompt_param=None):
+    print("Using training free baseline")
     return ViTFree(num_classes=out_dim, pt=True, prompt_flag=prompt_flag, prompt_param=prompt_param)
