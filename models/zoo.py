@@ -659,6 +659,19 @@ class ViTFree(nn.Module):
         self.prototype_variances = self.prototype_variances * old_counts.unsqueeze(1) + \
                                    mask.mm(out_features ** 2)
         self.prototype_variances /= self.prototype_counts.unsqueeze(1)
+
+
+    def sample_prototypes(self):
+        if self.task_id == 0:
+            return None
+        
+        max_idx = self.task_id * self.prompt.num_cls_per_task
+        mean_std = torch.sqrt(self.prototype_variances[:max_idx] - \
+                                self.value_prototypes[:max_idx] ** 2)
+        # Sample the prototypes from the previous tasks
+        sampled_prototypes = torch.normal(self.value_prototypes[:max_idx], mean_std)
+        return sampled_prototypes
+
         
 
 def vit_pt_imnet(out_dim, prompt_flag = 'None', prompt_param=None):
