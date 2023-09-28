@@ -542,6 +542,7 @@ class ViTFree(nn.Module):
         self.value_prototypes = torch.zeros(num_classes, 768)
         self.prototype_counts = torch.zeros(num_classes)
         self.prototype_variances = torch.zeros(num_classes, 768)
+        self.prototype_std = torch.zeros(num_classes, 768)
 
         # create prompting module
         if self.prompt_flag == 'cpp':
@@ -659,6 +660,8 @@ class ViTFree(nn.Module):
         self.prototype_variances = self.prototype_variances * old_counts.unsqueeze(1) + \
                                    mask.mm(out_features ** 2)
         self.prototype_variances /= self.prototype_counts.unsqueeze(1)
+        self.prototype_std = torch.sqrt(self.prototype_variances - \
+                                        self.value_prototypes ** 2)
 
 
     def sample_prototypes(self):
@@ -666,10 +669,8 @@ class ViTFree(nn.Module):
             return None
         
         max_idx = self.task_id * self.prompt.num_cls_per_task
-        mean_std = torch.sqrt(self.prototype_variances[:max_idx] - \
-                                self.value_prototypes[:max_idx] ** 2)
         # Sample the prototypes from the previous tasks
-        sampled_prototypes = torch.normal(self.value_prototypes[:max_idx], mean_std)
+        sampled_prototypes = torch.normal(self.value_prototypes[:max_idx], self.prototype_std[:max_idx])
         return sampled_prototypes
 
         
