@@ -4,10 +4,10 @@ import torch
 import numpy as np
 import models
 
-from .default import NormalNN, accumulate_acc
+from .default import NormalNN
 from utils.schedulers import CosineSchedule
 from models.loss import ContrastivePrototypicalLoss
-from utils.metric import accuracy, AverageMeter, Timer
+from utils.metric import AverageMeter, Timer
 
 
 class Prompt(NormalNN):
