@@ -638,7 +638,6 @@ class ViTFree(nn.Module):
         y: int
             The label of the input
         """
-        X = self.get_query_features(X)
         self.prompt.compute_centroids(X, y)
     
 
