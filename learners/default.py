@@ -240,7 +240,7 @@ class NormalNN(nn.Module):
         elif self.config['optimizer'] == 'amsgrad':
             optimizer_arg['amsgrad'] = True
             self.config['optimizer'] = 'Adam'
-        elif self.config['optimizer'] == 'Adam':
+        elif self.config['optimizer'] in ['Adam','AdamW']:
             optimizer_arg['betas'] = (self.config['momentum'],0.999)
 
         # create optimizers
