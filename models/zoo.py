@@ -551,6 +551,8 @@ class ViTFree(nn.Module):
             print("No prompt module is used")
             self.prompt = None
 
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
  
     def forward(self, x, pen=False, train=False):
         if self.prompt is not None:
@@ -646,7 +648,8 @@ class ViTFree(nn.Module):
         Update the prototypes
         """
         with torch.no_grad():
-            out_features = self.forward(x, pen=True, train=False)
+            x = x.to(self._device)
+            out_features = self.forward(x, pen=True, train=False).cpu()
         old_counts = self.prototype_counts
         self.prototype_counts += torch.bincount(y, minlength=self.num_classes).float()
         
