@@ -3,6 +3,7 @@ from __future__ import print_function
 import torch
 import numpy as np
 import models
+import copy
 
 from .default import NormalNN
 from utils.schedulers import CosineSchedule
@@ -317,3 +318,24 @@ class CPP(Prompt):
             self.log(' * Val Acc {acc.avg:.3f}, Total time {time:.2f}'
                     .format(acc=acc, time=batch_timer.toc()))
         return acc.avg
+    
+    def save_prototype(self, filename):
+        prototype = dict()
+        prototype["key"] = copy.deepcopy(self.model.prompt.key_prototypes)
+        prototype["value"] = copy.deepcopy(self.model.value_prototypes)
+        prototype["variance"] = copy.deepcopy(self.model.prototype_variances)
+        prototype['count'] = copy.deepcopy(self.model.prototype_counts)
+        prototype['std'] = copy.deepcopy(self.model.prototype_std)
+        self.log('=> Saving class prototype to:', filename)
+        torch.save(prototype, filename + 'class.pth')
+        self.log('=> Save Prototype Done')
+
+
+    def load_prototype(self, filename):
+        prototype = torch.load(filename + 'class.pth')
+        self.model.prompt.key_prototypes = prototype["key"]
+        self.model.value_prototypes = prototype["value"]
+        self.model.prototype_variances = prototype["variance"]
+        self.model.prototype_counts = prototype['count']
+        self.model.prototype_std = prototype['std']
+        self.log('=> Load Prototype Done')
