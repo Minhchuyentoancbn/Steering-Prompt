@@ -316,11 +316,10 @@ class CPP(Prompt):
         model.eval()
         for i, (input, target, task) in enumerate(dataloader):
             if self.gpu:
-                with torch.no_grad():
-                    input = input.cuda()
-                    target = target.cuda()
+                input = input.cuda()
 
-            output = model.predict(input)
+            with torch.no_grad():
+                output = model.predict(input)
             acc_score = output.eq(target).float().mean()
             acc.update(acc_score, len(target))
 
