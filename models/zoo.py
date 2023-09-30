@@ -594,17 +594,17 @@ class ViTFree(nn.Module):
         B = x.shape[0]
         # Get query features
         q = self.get_query_features(x)
-        n_q = F.normalize(q, dim=1).detach()
+        n_q = F.normalize(q, dim=1).detach().cpu()
 
         max_idx = (self.task_id + 1) * self.prompt.num_centroids * self.prompt.num_cls_per_task
-        n_K = F.normalize(self.prompt.key_prototypes[: max_idx], dim=1).to(self._device)
+        n_K = F.normalize(self.prompt.key_prototypes[: max_idx], dim=1)
         tasks = self.prompt.key_task[: max_idx]
         num_neighbours = self.prompt.num_neighbours
 
         # Find potential task ids
         cos_sim = torch.mm(n_q, n_K.t())
         top_k = torch.topk(cos_sim, num_neighbours, dim=1)
-        top_task = tasks[top_k.indices.cpu()]
+        top_task = tasks[top_k.indices]
 
         values = torch.zeros(B, num_neighbours, 768)
         for i in range(num_neighbours):
