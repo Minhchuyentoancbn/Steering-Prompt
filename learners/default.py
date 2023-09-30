@@ -251,6 +251,8 @@ class NormalNN(nn.Module):
             self.scheduler = CosineSchedule(self.optimizer, K=self.schedule[-1])
         elif self.schedule_type == 'decay':
             self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.schedule, gamma=0.1)
+        elif self.schedule_type == 'cosine_torch':
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.schedule[-1], eta_min=1e-6)
 
     def create_model(self):
         cfg = self.config
