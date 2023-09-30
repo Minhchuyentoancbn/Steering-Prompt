@@ -286,7 +286,7 @@ class CPP(Prompt):
         self.model.eval()
 
         classes = np.zeros((0, ))
-        query_feats = np.zeros((0, 768))
+        query_feats = torch.zeros((0, 768))
         
         for x, y, _  in train_loader:
             # send data to gpu
@@ -294,8 +294,8 @@ class CPP(Prompt):
                 x = x.cuda()
                 y = y.cuda()
             classes = np.concatenate((classes, y.cpu().numpy()))
-            query = self.model.get_query_features(x).cpu().numpy()
-            query_feats = np.concatenate((query_feats, query))
+            query = self.model.get_query_features(x).cpu()
+            query_feats = torch.cat((query_feats, query), dim=0)
 
         unique_classes = np.unique(classes)
 
