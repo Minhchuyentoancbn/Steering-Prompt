@@ -664,7 +664,7 @@ class ViTFree(nn.Module):
                                    mask.mm(out_features ** 2)
         self.prototype_variances /= self.prototype_counts.unsqueeze(1)
         self.prototype_std = torch.sqrt(self.prototype_variances - \
-                                        self.value_prototypes ** 2)
+                                        self.value_prototypes ** 2 + 1e-8)
 
 
     def sample_prototypes(self):
