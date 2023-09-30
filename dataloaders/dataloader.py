@@ -86,6 +86,9 @@ class iDataset(data.Dataset):
                 locs = np.isin(self.targets, task).nonzero()[0]
                 self.archive.append((self.data[locs].copy(), self.targets[locs].copy()))
 
+        if self.train:
+            self.coreset = (np.zeros(0, dtype=self.data.dtype), np.zeros(0, dtype=self.targets.dtype))
+
 
     def __getitem__(self, index):
         """
@@ -134,6 +137,44 @@ class iDataset(data.Dataset):
         tmp = '    Transforms (if any): '
         fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         return fmt_str
+    
+    
+    def append_coreset(self, only=False, interp=False):
+        len_core = len(self.coreset[0])
+        if self.train and (len_core > 0):
+            if only:
+                self.data, self.targets = self.coreset
+            else:
+                len_data = len(self.data)
+                sample_ind = np.random.choice(len_core, len_data)
+                self.data = np.concatenate([self.data, self.coreset[0][sample_ind]], axis=0)
+                self.targets = np.concatenate([self.targets, self.coreset[1][sample_ind]], axis=0)
+
+
+    def update_coreset(self, coreset_size, seen):
+        num_data_per = coreset_size // len(seen)
+        remainder = coreset_size % len(seen)
+        data = []
+        targets = []
+        
+        # random coreset management; latest classes take memory remainder
+        # coreset selection without affecting RNG state
+        state = np.random.get_state()
+        np.random.seed(self.seed)
+        for k in reversed(seen):
+            mapped_targets = [self.class_mapping[self.targets[i]] for i in range(len(self.targets))]
+            locs = (mapped_targets == k).nonzero()[0]
+            if (remainder > 0) and (len(locs) > num_data_per):
+                num_data_k = num_data_per + 1
+                remainder -= 1
+            else:
+                num_data_k = min(len(locs), num_data_per)
+            locs_chosen = locs[np.random.choice(len(locs), num_data_k, replace=False)]
+            data.append([self.data[loc] for loc in locs_chosen])
+            targets.append([self.targets[loc] for loc in locs_chosen])
+        self.coreset = (np.concatenate(list(reversed(data)), axis=0), np.concatenate(list(reversed(targets)), axis=0))
+        np.random.set_state(state)
+
 
 
 class iCIFAR10(iDataset):
