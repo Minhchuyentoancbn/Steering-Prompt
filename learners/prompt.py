@@ -284,10 +284,7 @@ class CPP(Prompt):
             X_cls = X[y==cls]
             X_query = torch.zeros((X_cls.shape[0], 768))
             for i in range(0, X_cls.shape[0], self.batch_size):
-                if self.gpu:
-                    X_query[i:i+self.batch_size] = self.model.get_query_features(X_cls[i:i+self.batch_size].cuda()).cpu()
-                else:
-                    X_query[i:i+self.batch_size] = self.model.get_query_features(X_cls[i:i+self.batch_size])
+                X_query[i:i+self.batch_size] = self.model.get_query_features(X_cls[i:i+self.batch_size])
             self.model.compute_key_prototypes(X_query, cls)
 
 
