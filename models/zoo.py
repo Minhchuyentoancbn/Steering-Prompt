@@ -597,7 +597,7 @@ class ViTFree(nn.Module):
         n_q = F.normalize(q, dim=1).detach()
 
         max_idx = (self.task_id + 1) * self.prompt.num_centroids * self.prompt.num_cls_per_task
-        n_K = F.normalize(self.prompt.key_prototypes[: max_idx], dim=1)
+        n_K = F.normalize(self.prompt.key_prototypes[: max_idx], dim=1).to(self._device)
         tasks = self.prompt.key_task[: max_idx]
         num_neighbours = self.prompt.num_neighbours
 
