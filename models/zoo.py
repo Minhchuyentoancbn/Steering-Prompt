@@ -610,7 +610,8 @@ class ViTFree(nn.Module):
         for i in range(num_neighbours):
             # Get the value features
             task_id = top_task[:, i].to(self._device)
-            out, _ = self.feat(x, prompt=self.prompt, q=q, train=False, task_id=task_id)
+            with torch.no_grad():
+                out, _ = self.feat(x, prompt=self.prompt, q=q, train=False, task_id=task_id)
             out = out[:, 0, :]
             out = out.view(out.size(0), -1).cpu()
             values[:, i, :] = out
