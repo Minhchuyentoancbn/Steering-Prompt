@@ -132,6 +132,7 @@ class L2P(Prompt):
 class CPP(Prompt):
     def __init__(self, learner_config):
         super(CPP, self).__init__(learner_config)
+        self.num_cls_per_task = learner_config['num_classes'] // 10
         self.batch_size = learner_config['batch_size']
         self.criterion_fn = ContrastivePrototypicalLoss(
             temperature=learner_config['temp'],
@@ -320,8 +321,8 @@ class CPP(Prompt):
 
             with torch.no_grad():
                 output = model.predict(input)
-                print(self.task_count)
-                assert output.max() <= target.max(), "output.max() > target.max()"
+                # print(self.task_count)
+                assert output.max() <= self.task_count * self.num_cls_per_task
             acc_score = output.eq(target).float().mean()
             acc.update(acc_score, len(target))
 
