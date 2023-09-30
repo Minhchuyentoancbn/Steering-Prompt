@@ -256,7 +256,7 @@ class CPP(Prompt):
                     losses.update(loss,  y.size(0)) 
                     batch_timer.tic()
 
-                    print(f'Batches: {i}/{len(train_loader)}, Loss: {loss.item():.4f}', end='\r')
+                    # print(f'Batches: {i}/{len(train_loader)}, Loss: {loss.item():.4f}', end='\r')
 
                 # eval update
                 self.log('Epoch:{epoch:.0f}/{total:.0f}'.format(epoch=self.epoch+1,total=self.config['schedule'][-1]))
@@ -290,6 +290,7 @@ class CPP(Prompt):
             X_cls = X[y==cls]
             X_query = torch.zeros((X_cls.shape[0], 768))
             for i in range(0, X_cls.shape[0], self.batch_size):
+                print(X_cls[i:i+self.batch_size].shape)
                 X_query[i:i+self.batch_size] = self.model.get_query_features(X_cls[i:i+self.batch_size])
             self.model.compute_key_prototypes(X_query, cls)
 
