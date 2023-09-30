@@ -670,6 +670,7 @@ class ViTFree(nn.Module):
         max_idx = self.task_id * self.prompt.num_cls_per_task
         # Sample the prototypes from the previous tasks
         sampled_prototypes = torch.normal(self.value_prototypes[:max_idx], self.prototype_std[:max_idx])
+        sampled_prototypes = self.prompt.mlp_head(sampled_prototypes)
         return sampled_prototypes
 
         
