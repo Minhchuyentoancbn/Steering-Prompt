@@ -434,7 +434,7 @@ class CPP(nn.Module):
         Y = F.normalize(U, dim=1)
 
         # Perform k-means clustering
-        kmeans = KMeans(n_clusters=k, random_state=0).fit(Y.cpu().numpy())
+        kmeans = KMeans(n_clusters=k, random_state=0, n_init='auto').fit(Y.cpu().numpy())
         cluster = kmeans.labels_
 
         for i in range(self.num_centroids):
