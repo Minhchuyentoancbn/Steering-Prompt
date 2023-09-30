@@ -292,7 +292,6 @@ class CPP(Prompt):
             # send data to gpu
             if self.gpu:
                 x = x.cuda()
-                y = y.cuda()
             classes = np.concatenate((classes, y.cpu().numpy()))
             query = self.model.get_query_features(x).cpu()
             query_feats = torch.cat((query_feats, query), dim=0)
