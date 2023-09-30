@@ -604,15 +604,15 @@ class ViTFree(nn.Module):
         # Find potential task ids
         cos_sim = torch.mm(n_q, n_K.t())
         top_k = torch.topk(cos_sim, num_neighbours, dim=1)
-        top_task = tasks[top_k.indices]
+        top_task = tasks[top_k.indices.cpu()]
 
         values = torch.zeros(B, num_neighbours, 768)
         for i in range(num_neighbours):
             # Get the value features
-            task_id = top_task[:, i]
+            task_id = top_task[:, i].to(self._device)
             out, _ = self.feat(x, prompt=self.prompt, q=q, train=False, task_id=task_id)
             out = out[:, 0, :]
-            out = out.view(out.size(0), -1)
+            out = out.view(out.size(0), -1).cpu()
             values[:, i, :] = out
 
         # Compute the distance between value features and value prototypes
