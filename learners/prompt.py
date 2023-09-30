@@ -300,7 +300,7 @@ class CPP(Prompt):
 
         for cls in unique_classes:
             X_query = query_feats[classes == cls]
-            self.model.compute_key_prototypes(X_query, cls)
+            self.model.compute_key_prototypes(X_query, int(cls))
 
 
     def validation(self, dataloader, model=None, task_in = None, task_metric='acc',  verbal = True, task_global=False):
