@@ -664,7 +664,7 @@ class ViTFree(nn.Module):
                                    mask.mm(out_features ** 2)
         self.prototype_variances /= self.prototype_counts.unsqueeze(1)
         self.prototype_std = torch.sqrt(self.prototype_variances - \
-                                        self.value_prototypes ** 2) + 1e-6
+                                        self.value_prototypes ** 2)
 
 
     def sample_prototypes(self):
@@ -673,8 +673,9 @@ class ViTFree(nn.Module):
         
         max_idx = self.task_id * self.prompt.num_cls_per_task
         # Sample the prototypes from the previous tasks
-        sampled_prototypes = torch.normal(self.value_prototypes[:max_idx], self.prototype_std[:max_idx])
-        sampled_prototypes = self.prompt.mlp_head(sampled_prototypes)
+        sampled_prototypes = self.value_prototypes[:max_idx] + torch.randn_like(self.value_prototypes[:max_idx]) * \
+                             self.prototype_std[:max_idx]
+        sampled_prototypes = self.prompt.mlp_head(sampled_prototypes.to(self._device))
         return sampled_prototypes
 
         
