@@ -320,6 +320,7 @@ class CPP(Prompt):
 
             with torch.no_grad():
                 output = model.predict(input)
+                assert output.max() <= target.max(), "output.max() > target.max()"
             acc_score = output.eq(target).float().mean()
             acc.update(acc_score, len(target))
 
