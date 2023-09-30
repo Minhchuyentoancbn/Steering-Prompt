@@ -269,7 +269,7 @@ class CPP(Prompt):
         # Update value prototypes
         self.update_value_prototypes(train_loader)
         # Update key prototypes
-        self.update_key_prototypes(train_dataset)
+        self.update_key_prototypes(train_loader)
         self.first_task = False
         self.task_count += 1
         try:
@@ -282,16 +282,25 @@ class CPP(Prompt):
         for x, y, _  in train_loader:
             self.model.update_protypes(x, y)
 
-    def update_key_prototypes(self, train_dataset):
+    def update_key_prototypes(self, train_loader):
         self.model.eval()
-        X, y = train_dataset.archive[self.task_count]
-        classes = np.unique(y)
-        for cls in classes:
-            X_cls = X[y==cls]
-            X_query = torch.zeros((X_cls.shape[0], 768))
-            for i in range(0, X_cls.shape[0], self.batch_size):
-                print(X_cls[i:i+self.batch_size].shape)
-                X_query[i:i+self.batch_size] = self.model.get_query_features(X_cls[i:i+self.batch_size])
+
+        classes = np.zeros((0, ))
+        query_feats = np.zeros((0, 768))
+        
+        for x, y, _  in train_loader:
+            # send data to gpu
+            if self.gpu:
+                x = x.cuda()
+                y = y.cuda()
+            classes = np.concatenate((classes, y.cpu().numpy()))
+            query = self.model.get_query_features(x).cpu().numpy()
+            query_feats = np.concatenate((query_feats, query))
+
+        unique_classes = np.unique(classes)
+
+        for cls in unique_classes:
+            X_query = query_feats[classes == cls]
             self.model.compute_key_prototypes(X_query, cls)
 
 
