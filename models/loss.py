@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class ContrastivePrototypicalLoss(nn.Module):
     """
@@ -20,6 +21,8 @@ class ContrastivePrototypicalLoss(nn.Module):
         if z_feature.ndim > 2:
             z_feature = z_feature.reshape(z_feature.shape[0], -1)  # flatten
 
+        z_feature = F.normalize(z_feature, dim=1)
+
         if previous_prototype is None:
             concat_z_and_prototype = z_feature
             num_prototype = 0
@@ -29,6 +32,7 @@ class ContrastivePrototypicalLoss(nn.Module):
                 previous_prototype = previous_prototype.reshape(previous_prototype.shape[0], -1)
             assert z_feature.shape[1] == previous_prototype.shape[1], "z_feature.shape[1] != previous_prototype.shape[1]"
             (num_prototype, _) = previous_prototype.shape
+            previous_prototype = F.normalize(previous_prototype, dim=1)
             concat_z_and_prototype = torch.cat([z_feature, previous_prototype], dim=0)
 
         z_dot_z_T = torch.div(torch.matmul(z_feature, concat_z_and_prototype.T), 
