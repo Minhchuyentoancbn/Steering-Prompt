@@ -422,7 +422,7 @@ class CPP(nn.Module):
 
         clustering = SpectralClustering(
             n_clusters=self.num_centroids, affinity='precomputed',
-            random_state=42
+            random_state=42, n_jobs=-1
         ).fit(S.cpu().numpy())
         cluster = clustering.labels_
  
