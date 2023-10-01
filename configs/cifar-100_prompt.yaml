@@ -4,9 +4,9 @@ other_split_size: 10
 schedule:
 - 1
 schedule_type: cosine_torch
-batch_size: 64
+batch_size: 128
 optimizer: AdamW
-lr: 0.00025
+lr: 0.0005
 momentum: 0.9
 weight_decay: 0
 temp: 0.6
