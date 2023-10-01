@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     # determinstic backend
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = True
 
     # duplicate output stream to output file
     if not os.path.exists(args.log_dir): os.makedirs(args.log_dir)
