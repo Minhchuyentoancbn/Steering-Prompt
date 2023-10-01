@@ -651,7 +651,7 @@ class ViTFree(nn.Module):
         with torch.no_grad():
             x = x.to(self._device)
             out_features = self.forward(x, pen=True, train=False).cpu()
-        old_counts = self.prototype_counts
+        old_counts = self.prototype_counts.clone()
 
         # Update the value prototypes
         mask = torch.zeros(self.num_classes, x.shape[0])
