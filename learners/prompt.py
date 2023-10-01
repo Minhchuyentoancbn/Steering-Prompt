@@ -261,8 +261,7 @@ class CPP(Prompt):
                     batch_timer.tic()
 
                     # print(f'Batches: {i + 1}/{len(train_loader)}, Loss: {loss.item():.4f}, Time: {batch_time.sum:.2f}', end='\r')
-
-                print()
+                # print()
                 # eval update
                 self.log('Epoch:{epoch:.0f}/{total:.0f}'.format(epoch=self.epoch+1,total=self.config['schedule'][-1]))
                 self.log(' * Loss {loss.avg:.3f}'.format(loss=losses))
