@@ -272,8 +272,6 @@ class CPP(Prompt):
         self.update_value_prototypes(train_loader)
         # Check NaN in std
         max_idx = (self.model.task_id + 1) * self.model.prompt.num_cls_per_task
-        print("max_idx:", max_idx)
-        assert max_idx > 0, "max_idx <= 0"
         assert not torch.isnan(self.model.prototype_std[:max_idx]).any(), "NaN in std"
         # Update key prototypes
         self.update_key_prototypes(train_loader)
