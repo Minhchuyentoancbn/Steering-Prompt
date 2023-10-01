@@ -419,10 +419,10 @@ class CPP(nn.Module):
         S = torch.mm(X, X.t())
 
         # Compute the degree matrix
-        D = torch.diag(torch.sum(S, dim=1))
+        D = torch.div(1, torch.sqrt(torch.sum(S, dim=1)))
+        D = torch.diag(D)
 
         # Compute the Laplacian matrix
-        D = torch.inverse(torch.sqrt(D))
         L = D.mm(S).mm(D)
 
         # Compute the top k eigenvalues and eigenvectors
@@ -430,11 +430,11 @@ class CPP(nn.Module):
         try:
             U, _, _ = torch.linalg.svd(L, full_matrices=True)
         except:
-            # Save S, D, and L for debugging
-            torch.save(S, "S.pt")
-            torch.save(D, "D.pt")
-            torch.save(L, "L.pt")
-            print("SVD failed...")
+            # # Save S, D, and L for debugging
+            # torch.save(S, "S.pt")
+            # torch.save(D, "D.pt")
+            # torch.save(L, "L.pt")
+            # print("SVD failed...")
             raise RuntimeError("SVD failed...")
         U = U[:, :k]
 
