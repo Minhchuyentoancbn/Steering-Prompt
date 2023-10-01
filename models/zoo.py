@@ -427,7 +427,15 @@ class CPP(nn.Module):
 
         # Compute the top k eigenvalues and eigenvectors
         k = self.num_centroids
-        U, _, _ = torch.linalg.svd(L, full_matrices=True)
+        try:
+            U, _, _ = torch.linalg.svd(L, full_matrices=True)
+        except:
+            # Save S, D, and L for debugging
+            torch.save(S, "S.pt")
+            torch.save(D, "D.pt")
+            torch.save(L, "L.pt")
+            print("SVD failed...")
+            raise RuntimeError("SVD failed...")
         U = U[:, :k]
 
         # Normalize the rows of X
