@@ -539,8 +539,8 @@ class ViTFree(nn.Module):
 
         # classifier
         self.num_centroids = prompt_param[1][1]
-        self.value_prototypes = torch.zeros(num_classes * self.num_centroids, 768)
-        self.prototype_std = torch.zeros(num_classes * self.num_centroids, 768)
+        self.value_prototypes = torch.zeros((num_classes * self.num_centroids, 768))
+        self.prototype_std = torch.zeros((num_classes * self.num_centroids, 768))
 
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
