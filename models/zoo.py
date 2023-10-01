@@ -431,6 +431,7 @@ class CPP(nn.Module):
             U, _, _ = torch.linalg.svd(L, full_matrices=True)
         except:
             # Save S, D, and L for debugging
+            torch.save(X, "X.pt")
             torch.save(S, "S.pt")
             torch.save(D, "D.pt")
             torch.save(L, "L.pt")
