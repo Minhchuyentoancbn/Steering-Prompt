@@ -415,6 +415,8 @@ class CPP(nn.Module):
         """
         assert X.shape[1] == self.key_d, "The input dimension must be equal to the key dimension"
 
+        X = F.normalize(X, dim=1)
+
         # Compute the cosine similarity matrix
         S = torch.mm(X, X.t())
 
