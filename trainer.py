@@ -1,5 +1,4 @@
 #TODO
-# - check update task_id; task_count
 # - update compute distance between value protoypes so that each task counts only once
 
 
