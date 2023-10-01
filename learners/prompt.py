@@ -355,14 +355,10 @@ class CPP(Prompt):
         try:
             prototype["key"] = copy.deepcopy(self.model.prompt.key_prototypes)
             prototype["value"] = copy.deepcopy(self.model.value_prototypes)
-            prototype["variance"] = copy.deepcopy(self.model.prototype_variances)
-            prototype['count'] = copy.deepcopy(self.model.prototype_counts)
             prototype['std'] = copy.deepcopy(self.model.prototype_std)
         except:
             prototype["key"] = copy.deepcopy(self.model.module.prompt.key_prototypes)
             prototype["value"] = copy.deepcopy(self.model.module.value_prototypes)
-            prototype["variance"] = copy.deepcopy(self.model.module.prototype_variances)
-            prototype['count'] = copy.deepcopy(self.model.module.prototype_counts)
             prototype['std'] = copy.deepcopy(self.model.module.prototype_std)
         self.log('=> Saving class prototype to:', filename)
         torch.save(prototype, filename + 'class.pth')
@@ -373,7 +369,5 @@ class CPP(Prompt):
         prototype = torch.load(filename + 'class.pth')
         self.model.prompt.key_prototypes = prototype["key"]
         self.model.value_prototypes = prototype["value"]
-        self.model.prototype_variances = prototype["variance"]
-        self.model.prototype_counts = prototype['count']
         self.model.prototype_std = prototype['std']
         self.log('=> Load Prototype Done')
