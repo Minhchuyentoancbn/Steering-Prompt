@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import copy
 import numpy as np
 from .vit import VisionTransformer
-from sklearn.cluster import KMeans, SpectralClustering
+from sklearn.cluster import SpectralClustering
 
 
 class CodaPrompt(nn.Module):
@@ -425,27 +425,6 @@ class CPP(nn.Module):
             random_state=42, n_jobs=-1
         ).fit(S.cpu().numpy())
         cluster = clustering.labels_
- 
-
-        # # Compute the degree matrix
-        # D = torch.div(1, torch.sqrt(torch.sum(S, dim=1)))
-        # D = torch.diag(D)
-
-        # # Compute the Laplacian matrix
-        # L = D.mm(S).mm(D)
-
-        # # Compute the top k eigenvalues and eigenvectors
-        # k = self.num_centroids
-        # U, _, _ = torch.linalg.svd(L, full_matrices=True)
-
-        # U = U[:, :k]
-
-        # # Normalize the rows of X
-        # Y = F.normalize(U, dim=1)
-
-        # # Perform k-means clustering
-        # kmeans = KMeans(n_clusters=k, random_state=0, n_init='auto').fit(Y.cpu().numpy())
-        # cluster = kmeans.labels_
 
         for i in range(self.num_centroids):
             # Compute the centroid of each cluster
@@ -551,18 +530,17 @@ class ViTFree(nn.Module):
         # feature encoder changes if transformer vs resnet
         self.feat = zoo_model
 
-        # classifier
-        self.value_prototypes = torch.zeros(num_classes, 768)
-        self.prototype_counts = torch.zeros(num_classes)
-        self.prototype_variances = torch.zeros(num_classes, 768)
-        self.prototype_std = torch.zeros(num_classes, 768)
-
         # create prompting module
         if self.prompt_flag == 'cpp':
             self.prompt = CPP(768, prompt_param[0], prompt_param[1])
         else:
             print("No prompt module is used")
             self.prompt = None
+
+        # classifier
+        self.num_centroids = prompt_param[1][1]
+        self.value_prototypes = torch.zeros(num_classes * self.num_centroids, 768)
+        self.prototype_std = torch.zeros(num_classes * self.num_centroids, 768)
 
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -638,6 +616,7 @@ class ViTFree(nn.Module):
         dist = dist.sum(dim=1)
         # Get the minimum distance for each value feature -> (B)
         _, min_idx = torch.min(dist, dim=1)
+        min_idx = min_idx // self.num_centroids
 
         return min_idx
 
@@ -657,34 +636,33 @@ class ViTFree(nn.Module):
         self.prompt.compute_centroids(X, y)
     
 
-    def update_protypes(self, x, y):
+    def update_value_prototypes(self, X, cls):
         """
         Update the prototypes
         """
-        with torch.no_grad():
-            x = x.to(self._device)
-            out_features = self.forward(x, pen=True, train=False).cpu()
-        old_counts = self.prototype_counts.clone()
+        n_X = F.normalize(X, dim=1)
 
-        # Update the value prototypes
-        mask = torch.zeros(self.num_classes, x.shape[0])
-        mask[y, torch.arange(x.shape[0])] = 1
-        self.prototype_counts += mask.sum(dim=1)
-        self.value_prototypes = self.value_prototypes * old_counts.unsqueeze(1) + \
-                                mask.mm(out_features)
-        self.value_prototypes /= torch.clamp(self.prototype_counts.unsqueeze(1), min=1)
-        self.prototype_variances = self.prototype_variances * old_counts.unsqueeze(1) + \
-                                   mask.mm(out_features ** 2)
-        self.prototype_variances /= torch.clamp(self.prototype_counts.unsqueeze(1), min=1)
-        self.prototype_std = torch.sqrt(self.prototype_variances - \
-                                        self.value_prototypes ** 2)
+        # Compute the cosine similarity matrix and set the diagonal to 0
+        S = (torch.mm(n_X, n_X.t()) + 1) / 2 - torch.eye(X.shape[0])
+
+        clustering = SpectralClustering(
+            n_clusters=self.num_centroids, affinity='precomputed',
+            random_state=42, n_jobs=-1
+        ).fit(S.cpu().numpy())
+        cluster = clustering.labels_
+
+        for i in range(self.num_centroids):
+            # Compute the centroid of each cluster
+            idx = np.where(cluster == i)[0]
+            self.value_prototypes[cls * self.num_centroids + i] = torch.mean(X[idx], dim=0)
+            self.prototype_std[cls * self.num_centroids + i] = torch.std(X[idx], dim=0)
 
 
     def sample_prototypes(self):
         if self.task_id == 0:
             return None
         
-        max_idx = self.task_id * self.prompt.num_cls_per_task
+        max_idx = self.task_id * self.prompt.num_cls_per_task * self.num_centroids
         # Sample the prototypes from the previous tasks
         sampled_prototypes = self.value_prototypes[:max_idx] + torch.randn_like(self.value_prototypes[:max_idx]) * \
                              self.prototype_std[:max_idx]

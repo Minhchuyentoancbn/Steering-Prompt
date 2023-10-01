@@ -271,13 +271,9 @@ class CPP(Prompt):
                 losses = AverageMeter()
                 
         self.model.eval()
-        # Update value prototypes
-        self.update_value_prototypes(train_loader)
-        # Check NaN in std
-        # max_idx = (self.model.task_id + 1) * self.model.prompt.num_cls_per_task
-        # assert not torch.isnan(self.model.prototype_std[:max_idx]).any(), "NaN in std"
-        # Update key prototypes
-        self.update_key_prototypes(train_loader)
+        # Update key and value prototypes
+        self.update_prototypes(train_loader)
+
         self.first_task = False
         self.task_count += 1
         try:
@@ -285,39 +281,41 @@ class CPP(Prompt):
         except:
             return None
         
-    def update_value_prototypes(self, train_loader):
-        self.model.eval()
-        for x, y, _  in train_loader:
-            try:
-                self.model.update_protypes(x, y)
-            except:
-                self.model.module.update_protypes(x, y)
 
-    def update_key_prototypes(self, train_loader):
+    def update_prototypes(self, train_loader):
         self.model.eval()
 
         classes = np.zeros((0, ))
         query_feats = torch.zeros((0, 768))
-        
+        embeddings = torch.zeros((0, 768))
+
         for x, y, _  in train_loader:
             # send data to gpu
             if self.gpu:
                 x = x.cuda()
             classes = np.concatenate((classes, y.cpu().numpy()))
-            try:
-                query = self.model.get_query_features(x).cpu()
-            except:
-                query = self.model.module.get_query_features(x).cpu()
+            with torch.no_grad():
+                try:
+                    query = self.model.get_query_features(x).cpu()
+                    out_features = self.model(x, pen=True, train=False).cpu()
+                except AttributeError:
+                    query = self.model.module.get_query_features(x).cpu()
+                    out_features = self.model.module(x, pen=True, train=False).cpu()
             query_feats = torch.cat((query_feats, query), dim=0)
+            embeddings = torch.cat((embeddings, out_features), dim=0)
 
         unique_classes = np.unique(classes)
 
         for cls in unique_classes:
             X_query = query_feats[classes == cls]
+            X = embeddings[classes == cls]
             try:
                 self.model.compute_key_prototypes(X_query, int(cls))
+                self.model.update_value_prototypes(X, int(cls))
             except AttributeError:
                 self.model.module.compute_key_prototypes(X_query, int(cls))
+                self.model.module.update_value_prototypes(X, int(cls))
+
 
 
     def validation(self, dataloader, model=None, task_in = None, task_metric='acc',  verbal = True, task_global=False):
