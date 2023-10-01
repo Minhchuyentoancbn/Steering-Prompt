@@ -417,8 +417,9 @@ class CPP(nn.Module):
 
         X = F.normalize(X, dim=1)
 
-        # Compute the cosine similarity matrix
-        S = torch.mm(X, X.t())
+        # Compute the cosine similarity matrix and set the diagonal to 0
+        S = (torch.mm(X, X.t()) + 1) / 2 - torch.eye(X.shape[0], device=X.device)
+ 
 
         # Compute the degree matrix
         D = torch.div(1, torch.sqrt(torch.sum(S, dim=1)))
