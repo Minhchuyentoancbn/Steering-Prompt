@@ -316,7 +316,7 @@ class CPP(Prompt):
             X_query = query_feats[classes == cls]
             try:
                 self.model.compute_key_prototypes(X_query, int(cls))
-            except:
+            except AttributeError:
                 self.model.module.compute_key_prototypes(X_query, int(cls))
 
 
