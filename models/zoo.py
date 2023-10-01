@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import copy
 import numpy as np
 from .vit import VisionTransformer
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, SpectralClustering
 
 
 class CodaPrompt(nn.Module):
@@ -419,35 +419,33 @@ class CPP(nn.Module):
 
         # Compute the cosine similarity matrix and set the diagonal to 0
         S = (torch.mm(X, X.t()) + 1) / 2 - torch.eye(X.shape[0], device=X.device)
+
+        clustering = SpectralClustering(
+            n_clusters=self.num_centroids, affinity='precomputed',
+            random_state=42
+        ).fit(S.cpu().numpy())
+        cluster = clustering.labels_
  
 
-        # Compute the degree matrix
-        D = torch.div(1, torch.sqrt(torch.sum(S, dim=1)))
-        D = torch.diag(D)
+        # # Compute the degree matrix
+        # D = torch.div(1, torch.sqrt(torch.sum(S, dim=1)))
+        # D = torch.diag(D)
 
-        # Compute the Laplacian matrix
-        L = D.mm(S).mm(D)
+        # # Compute the Laplacian matrix
+        # L = D.mm(S).mm(D)
 
-        # Compute the top k eigenvalues and eigenvectors
-        k = self.num_centroids
-        try:
-            U, _, _ = torch.linalg.svd(L, full_matrices=True)
-        except:
-            # Save S, D, and L for debugging
-            torch.save(X, "X.pt")
-            torch.save(S, "S.pt")
-            torch.save(D, "D.pt")
-            torch.save(L, "L.pt")
-            print("SVD failed...")
-            raise RuntimeError("SVD failed...")
-        U = U[:, :k]
+        # # Compute the top k eigenvalues and eigenvectors
+        # k = self.num_centroids
+        # U, _, _ = torch.linalg.svd(L, full_matrices=True)
 
-        # Normalize the rows of X
-        Y = F.normalize(U, dim=1)
+        # U = U[:, :k]
 
-        # Perform k-means clustering
-        kmeans = KMeans(n_clusters=k, random_state=0, n_init='auto').fit(Y.cpu().numpy())
-        cluster = kmeans.labels_
+        # # Normalize the rows of X
+        # Y = F.normalize(U, dim=1)
+
+        # # Perform k-means clustering
+        # kmeans = KMeans(n_clusters=k, random_state=0, n_init='auto').fit(Y.cpu().numpy())
+        # cluster = kmeans.labels_
 
         for i in range(self.num_centroids):
             # Compute the centroid of each cluster
