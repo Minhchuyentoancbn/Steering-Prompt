@@ -571,7 +571,7 @@ class ViTFree(nn.Module):
         out = out.view(out.size(0), -1)
 
         if train:
-            return out, torch.zeros(1)
+            return out, torch.zeros(1).to(self._device)
         else:
             return out
         
