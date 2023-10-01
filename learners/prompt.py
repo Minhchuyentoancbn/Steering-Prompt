@@ -260,7 +260,7 @@ class CPP(Prompt):
                     losses.update(loss,  y.size(0)) 
                     batch_timer.tic()
 
-                    print(f'Batches: {i + 1}/{len(train_loader)}, Loss: {loss.item():.4f}', end='\r')
+                    print(f'Batches: {i + 1}/{len(train_loader)}, Loss: {loss.item():.4f}, Time: {batch_time.avg:.2f}', end='\r')
 
                 print()
                 # eval update
