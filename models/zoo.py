@@ -652,11 +652,11 @@ class ViTFree(nn.Module):
             x = x.to(self._device)
             out_features = self.forward(x, pen=True, train=False).cpu()
         old_counts = self.prototype_counts
-        self.prototype_counts += torch.bincount(y, minlength=self.num_classes).float()
-        
+
         # Update the value prototypes
         mask = torch.zeros(self.num_classes, x.shape[0])
         mask[y, torch.arange(x.shape[0])] = 1
+        self.prototype_counts += mask.sum(dim=1)
         self.value_prototypes = self.value_prototypes * old_counts.unsqueeze(1) + \
                                 mask.mm(out_features)
         self.value_prototypes /= self.prototype_counts.unsqueeze(1)
