@@ -304,7 +304,10 @@ class CPP(Prompt):
             if self.gpu:
                 x = x.cuda()
             classes = np.concatenate((classes, y.cpu().numpy()))
-            query = self.model.get_query_features(x).cpu()
+            try:
+                query = self.model.get_query_features(x).cpu()
+            except:
+                query = self.model.module.get_query_features(x).cpu()
             query_feats = torch.cat((query_feats, query), dim=0)
 
         unique_classes = np.unique(classes)
