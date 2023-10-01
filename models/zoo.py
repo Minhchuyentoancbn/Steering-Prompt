@@ -665,6 +665,9 @@ class ViTFree(nn.Module):
         self.prototype_variances /= self.prototype_counts.unsqueeze(1)
         self.prototype_std = torch.sqrt(self.prototype_variances - \
                                         self.value_prototypes ** 2)
+        
+        # Check NaN in std
+        assert not torch.isnan(self.prototype_std).any(), "NaN in std"
 
 
     def sample_prototypes(self):
