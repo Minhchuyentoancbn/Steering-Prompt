@@ -184,7 +184,10 @@ class CPP(Prompt):
         out, _ = self.model(inputs, train=True, pen=False)
 
         # Loss
-        previous_prototype = self.model.sample_prototypes()
+        try:
+            previous_prototype = self.model.sample_prototypes()
+        except:
+            previous_prototype = self.model.module.sample_prototypes()
         total_loss = self.criterion(out, targets.long(), previous_prototype)
 
         # step
