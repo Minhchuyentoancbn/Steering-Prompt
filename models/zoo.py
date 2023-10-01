@@ -430,11 +430,11 @@ class CPP(nn.Module):
         try:
             U, _, _ = torch.linalg.svd(L, full_matrices=True)
         except:
-            # # Save S, D, and L for debugging
-            # torch.save(S, "S.pt")
-            # torch.save(D, "D.pt")
-            # torch.save(L, "L.pt")
-            # print("SVD failed...")
+            # Save S, D, and L for debugging
+            torch.save(S, "S.pt")
+            torch.save(D, "D.pt")
+            torch.save(L, "L.pt")
+            print("SVD failed...")
             raise RuntimeError("SVD failed...")
         U = U[:, :k]
 
