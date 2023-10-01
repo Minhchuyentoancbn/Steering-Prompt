@@ -336,7 +336,10 @@ class CPP(Prompt):
                 input = input.cuda()
 
             with torch.no_grad():
-                output = model.predict(input)
+                try:
+                    output = model.predict(input)
+                except:
+                    output = model.module.predict(input)
                 # print(self.task_count)
                 assert output.max() <= self.task_count * self.num_cls_per_task
             acc_score = output.eq(target).float().mean()
