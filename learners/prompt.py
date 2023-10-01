@@ -288,7 +288,10 @@ class CPP(Prompt):
     def update_value_prototypes(self, train_loader):
         self.model.eval()
         for x, y, _  in train_loader:
-            self.model.update_protypes(x, y)
+            try:
+                self.model.update_protypes(x, y)
+            except:
+                self.model.module.update_protypes(x, y)
 
     def update_key_prototypes(self, train_loader):
         self.model.eval()
