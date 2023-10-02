@@ -61,9 +61,9 @@ class Attention(nn.Module):
     
     def forward(self, x, register_hook=False, prompt=None):
         if len(prompt) == 2:
-            prompt_type = 'prefix'
+            prompt_type = "prefix"
         elif len(prompt) == 1:
-            prompt_type = 'tuning'
+            prompt_type = "tuning"
         prompt_length = 0
 
         B, N, C = x.shape
