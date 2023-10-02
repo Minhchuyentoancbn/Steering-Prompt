@@ -6,7 +6,7 @@ schedule:
 schedule_type: cosine_torch
 batch_size: 128
 optimizer: AdamW
-lr: 0.0005
+lr: 0.0007
 momentum: 0.9
 weight_decay: 0
 temp: 0.6
