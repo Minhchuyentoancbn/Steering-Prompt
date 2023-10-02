@@ -596,8 +596,7 @@ class ViTFree(nn.Module):
         top_k = torch.topk(cos_sim, num_neighbours, dim=1)
         top_task = tasks[top_k.indices]
 
-        values = torch.zeros(B, num_neighbours, 768)
-        # values[b, i, :] = task_value[b, task_id[b, i], :]
+        # values = torch.zeros(B, num_neighbours, 768)
         task_value = torch.zeros(B, self.num_tasks, 768)
         mask = torch.zeros(B, self.num_tasks)
         for i in range(num_neighbours):
@@ -607,16 +606,14 @@ class ViTFree(nn.Module):
                 out, _ = self.feat(x, prompt=self.prompt, q=q, train=False, task_id=task_id)
             out = out[:, 0, :]
             out = out.view(out.size(0), -1).cpu()
-            values[:, i, :] = out
+            out = F.normalize(out, dim=1)
+            # values[:, i, :] = out
             task_value[torch.arange(B), top_task[:, i]] = out
             mask[torch.arange(B), top_task[:, i]] = 1
 
         # Compute the distance between value features and value prototypes
         value_prototypes = self.value_prototypes[:max_idx]
-        # Compute distance of each value prototype to each value features
-        # values: (B, r, d_k), value_prototypes: (C, d_k) -> (B, C)
-        # dist = torch.cdist(values, value_prototypes)  # (B, r, C)
-
+        value_prototypes = F.normalize(value_prototypes, dim=1)
         dist = torch.cdist(task_value, value_prototypes)  # (B, T, C)
         dist = dist * mask.unsqueeze(-1)
 
