@@ -597,6 +597,9 @@ class ViTFree(nn.Module):
         top_task = tasks[top_k.indices]
 
         values = torch.zeros(B, num_neighbours, 768)
+        # values[b, i, :] = task_value[b, task_id[b, i], :]
+        task_value = torch.zeros(B, self.num_tasks, 768)
+        mask = torch.zeros(B, self.num_tasks)
         for i in range(num_neighbours):
             # Get the value features
             task_id = top_task[:, i].to(self._device)
@@ -605,12 +608,7 @@ class ViTFree(nn.Module):
             out = out[:, 0, :]
             out = out.view(out.size(0), -1).cpu()
             values[:, i, :] = out
-
-        # values[b, i, :] = task_value[b, task_id[b, i], :]
-        task_value = torch.zeros(B, self.num_tasks, 768)
-        mask = torch.zeros(B, self.num_tasks)
-        for i in range(num_neighbours):
-            task_value[torch.arange(B), top_task[:, i]] = values[:, i, :]
+            task_value[torch.arange(B), top_task[:, i]] = out
             mask[torch.arange(B), top_task[:, i]] = 1
 
         # Compute the distance between value features and value prototypes
