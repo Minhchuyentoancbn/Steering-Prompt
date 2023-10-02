@@ -274,16 +274,10 @@ class CPP(Prompt):
 
                 # Validation
                 if val_loader is not None and epoch % 3 == 0:
-                    try:
-                        self.model.task_id += 1
-                    except:
-                        self.model.module.task_id += 1
+                    self.task_count += 1
                     self.update_prototypes(train_loader)
                     self.validation(val_loader, task_metric='acc', verbal=True)
-                    try:
-                        self.model.task_id -= 1
-                    except:
-                        self.model.module.task_id -= 1
+                    self.task_count -= 1
 
                 
         self.model.eval()
