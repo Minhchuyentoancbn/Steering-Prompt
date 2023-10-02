@@ -271,6 +271,12 @@ class CPP(Prompt):
 
                 # reset
                 losses = AverageMeter()
+
+                # Validation
+                if val_loader is not None and epoch % 3 == 0:
+                    self.update_prototypes(train_loader)
+                    self.validation(val_loader, task_metric='acc', verbal=True)
+
                 
         self.model.eval()
         # Update key and value prototypes
