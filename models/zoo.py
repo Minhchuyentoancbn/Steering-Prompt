@@ -537,6 +537,7 @@ class ViTFree(nn.Module):
 
         # classifier
         self.num_centroids = int(prompt_param[1][1])
+        self.num_tasks = int(prompt_param[0])
         self.value_prototypes = torch.zeros((num_classes * self.num_centroids, 768))
         self.prototype_std = torch.zeros((num_classes * self.num_centroids, 768))
 
@@ -610,11 +611,24 @@ class ViTFree(nn.Module):
         # Compute distance of each value prototype to each value features
         # values: (B, r, d_k), value_prototypes: (C, d_k) -> (B, C)
         dist = torch.cdist(values, value_prototypes)  # (B, r, C)
-        # Get the sum distance for each value feature -> (B, C)
-        dist = dist.sum(dim=1)
-        # Get the minimum distance for each value feature -> (B)
-        _, min_idx = torch.min(dist, dim=1)
+
+        task_dist = torch.zeros(B, self.num_tasks, self.num_classes)
+        mask = torch.zeros(B, self.num_tasks, self.num_classes)
+        for i in range(num_neighbours):
+            task_id = top_task[:, i]
+            task_dist[:, task_id, :] = dist[:, i, :].view(B, self.num_classes)
+            mask[:, task_id, :] = 1
+
+        # Get the minimum distance for each value feature -> (B, C)
+        task_dist = task_dist.sum(dim=1)
+        _, min_idx = torch.min(task_dist, dim=1)
         min_idx = min_idx // self.num_centroids
+
+        # # Get the sum distance for each value feature -> (B, C)
+        # dist = dist.sum(dim=1)
+        # # Get the minimum distance for each value feature -> (B)
+        # _, min_idx = torch.min(dist, dim=1)
+        # min_idx = min_idx // self.num_centroids
 
         return min_idx
 
