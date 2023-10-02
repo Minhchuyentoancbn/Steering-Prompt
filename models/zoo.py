@@ -606,29 +606,27 @@ class ViTFree(nn.Module):
             out = out.view(out.size(0), -1).cpu()
             values[:, i, :] = out
 
+        # values[b, i, :] = task_value[b, task_id[b, i], :]
+        task_value = torch.zeros(B, self.num_tasks, 768)
+        mask = torch.zeros(B, self.num_tasks)
+        for i in range(num_neighbours):
+            task_value[torch.arange(B), top_task[:, i]] = values[:, i, :]
+            mask[torch.arange(B), top_task[:, i]] = 1
+
         # Compute the distance between value features and value prototypes
         value_prototypes = self.value_prototypes[:max_idx]
         # Compute distance of each value prototype to each value features
         # values: (B, r, d_k), value_prototypes: (C, d_k) -> (B, C)
-        dist = torch.cdist(values, value_prototypes)  # (B, r, C)
+        # dist = torch.cdist(values, value_prototypes)  # (B, r, C)
 
-        task_dist = torch.zeros(B, self.num_tasks, self.num_classes)
-        # mask = torch.zeros(B, self.num_tasks, self.num_classes)
-        for i in range(num_neighbours):
-            task_id = top_task[:, i]
-            task_dist[:, task_id, :] = dist[:, i, :].view(B, self.num_classes)
-            # mask[:, task_id, :] = 1
+        dist = torch.cdist(task_value, value_prototypes)  # (B, T, C)
+        dist = dist * mask.unsqueeze(-1)
 
-        # Get the minimum distance for each value feature -> (B, C)
-        task_dist = task_dist.sum(dim=1)
-        _, min_idx = torch.min(task_dist, dim=1)
+        # Get the sum distance for each value feature -> (B, C)
+        dist = dist.sum(dim=1)
+        # Get the minimum distance for each value feature -> (B)
+        _, min_idx = torch.min(dist, dim=1)
         min_idx = min_idx // self.num_centroids
-
-        # # Get the sum distance for each value feature -> (B, C)
-        # dist = dist.sum(dim=1)
-        # # Get the minimum distance for each value feature -> (B)
-        # _, min_idx = torch.min(dist, dim=1)
-        # min_idx = min_idx // self.num_centroids
 
         return min_idx
 
