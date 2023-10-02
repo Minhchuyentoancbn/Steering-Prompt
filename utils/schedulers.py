@@ -47,7 +47,7 @@ class _LRScheduler(object):
 class CosineSchedule(_LRScheduler):
 
     def __init__(self, optimizer, K):
-        self.K = K
+        self.K = 50 if K == 1 else K
         self.lr_min = 1e-6
         super().__init__(optimizer, -1)
 
