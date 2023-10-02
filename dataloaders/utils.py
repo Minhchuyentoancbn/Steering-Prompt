@@ -24,10 +24,10 @@ def get_transform(dataset='CIFAR100', phase='test'):
 
     if phase == 'train':
         transform_list.extend([
-            transforms.RandomResizedCrop(224),  # Random resized crop to 224
+            transforms.RandomResizedCrop(224, scale=(0.8, 1)),  # Random resized crop to 224
             transforms.RandomHorizontalFlip(),  # Random horizontal flip
             transforms.RandomApply([
-                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+                transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)
             ], p=0.8),  # Random color jitter
             transforms.RandomGrayscale(p=0.2),  # Random grayscale
             transforms.RandomApply([
