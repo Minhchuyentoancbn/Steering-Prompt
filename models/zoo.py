@@ -369,7 +369,7 @@ class CPP(nn.Module):
             nn.ReLU(),
             nn.Linear(2048, 768)
         )
-        self.mlp_head.requires_grad_(False)
+
 
     def _init_smart(self, emb_d, prompt_param):
         # Prompt basic param
