@@ -80,11 +80,11 @@ class Attention(nn.Module):
                 v = torch.cat((pv,v), dim=2)
             elif prompt_type == "tuning":
                 p = prompt[0]
+                prompt_length = p.shape[1]
                 p = p.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
                 k = torch.cat((p,k), dim=2)
                 v = torch.cat((p,v), dim=2)
                 q = torch.cat((p,q), dim=2)
-                prompt_length = p.shape[1]
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
