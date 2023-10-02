@@ -365,8 +365,8 @@ class CPP(nn.Module):
         self.mlp_head = nn.Sequential(
             nn.Linear(768, 2048),
             nn.ReLU(),
-            # nn.Linear(2048, 2048),
-            # nn.ReLU(),
+            nn.Linear(2048, 2048),
+            nn.ReLU(),
             nn.Linear(2048, 768)
         )
 
