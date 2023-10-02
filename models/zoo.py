@@ -613,11 +613,11 @@ class ViTFree(nn.Module):
         dist = torch.cdist(values, value_prototypes)  # (B, r, C)
 
         task_dist = torch.zeros(B, self.num_tasks, self.num_classes)
-        mask = torch.zeros(B, self.num_tasks, self.num_classes)
+        # mask = torch.zeros(B, self.num_tasks, self.num_classes)
         for i in range(num_neighbours):
             task_id = top_task[:, i]
             task_dist[:, task_id, :] = dist[:, i, :].view(B, self.num_classes)
-            mask[:, task_id, :] = 1
+            # mask[:, task_id, :] = 1
 
         # Get the minimum distance for each value feature -> (B, C)
         task_dist = task_dist.sum(dim=1)
