@@ -60,10 +60,8 @@ class Attention(nn.Module):
         return self.attention_map
     
     def forward(self, x, register_hook=False, prompt=None):
-        if len(prompt) == 2:
-            prompt_type = "prefix"
-        elif len(prompt) == 1:
-            prompt_type = "tuning"
+        
+        prompt_type = "tuning"
         prompt_length = 0
 
         B, N, C = x.shape
@@ -71,6 +69,9 @@ class Attention(nn.Module):
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
 
         if prompt is not None:
+            if len(prompt) == 2:
+                prompt_type = "prefix"
+
             if prompt_type == "prefix":
                 pk, pv = prompt
                 pk = pk.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
@@ -101,7 +102,7 @@ class Attention(nn.Module):
         x = self.proj_drop(x)
 
         if prompt_type == "tuning":
-            x = x[:,prompt_length:,:]
+            x = x[:, prompt_length: ,:]
 
         assert x.shape == (B, N, C), "x.shape != (B, N, C)"
 
