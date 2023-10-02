@@ -464,9 +464,6 @@ class ViTZoo(nn.Module):
             load_dict = vit_base_patch16_224(pretrained=True).state_dict()
             del load_dict['head.weight']; del load_dict['head.bias']
             zoo_model.load_state_dict(load_dict)
-            # Freeze the feature encoder
-            for param in zoo_model.parameters():
-                param.requires_grad = False
 
         # classifier
         self.last = nn.Linear(768, num_classes)
