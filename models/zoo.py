@@ -588,8 +588,8 @@ class ViTFree(nn.Module):
         n_q = F.normalize(q, dim=1).detach().cpu()
 
         max_idx = (self.task_id + 1) * self.prompt.num_centroids * self.prompt.num_cls_per_task
-        n_K = F.normalize(self.prompt.key_prototypes[: max_idx], dim=1)
-        tasks = self.prompt.key_task[: max_idx]
+        n_K = F.normalize(self.prompt.key_prototypes[:max_idx], dim=1)
+        tasks = self.prompt.key_task[:max_idx]
         num_neighbours = self.prompt.num_neighbours
 
         # Find potential task ids
@@ -607,8 +607,10 @@ class ViTFree(nn.Module):
             out = out.view(out.size(0), -1).cpu()
             values[:, i, :] = out
 
+        values = F.normalize(values, dim=2)
         # Compute the distance between value features and value prototypes
         value_prototypes = self.value_prototypes[:max_idx]
+        value_prototypes = F.normalize(value_prototypes, dim=1)
         # Compute distance of each value prototype to each value features
         # values: (B, r, d_k), value_prototypes: (C, d_k) -> (B, C)
         dist = torch.cdist(values, value_prototypes)  # (B, r, C)
