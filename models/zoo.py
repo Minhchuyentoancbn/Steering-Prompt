@@ -396,7 +396,7 @@ class CPP(nn.Module):
             p = getattr(self, f'e_p_{l}') # 0 based indexing here
             P_ = p[task_id].expand(B, -1, -1)  # 0 based indexing here
             P_ = P_.reshape((B, -1, self.emb_d))
-            p_return = [P_, P_]  # Prompt tuning
+            p_return = [P_, ]  # Prompt tuning
             # return
             return p_return, 0, x_block
         else:

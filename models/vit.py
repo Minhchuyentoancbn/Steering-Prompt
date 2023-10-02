@@ -60,16 +60,30 @@ class Attention(nn.Module):
         return self.attention_map
     
     def forward(self, x, register_hook=False, prompt=None):
+        if len(prompt) == 2:
+            prompt_type = 'prefix'
+        elif len(prompt) == 1:
+            prompt_type = 'tuning'
+        prompt_length = 0
+
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
 
         if prompt is not None:
-            pk, pv = prompt
-            pk = pk.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-            pv = pv.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-            k = torch.cat((pk,k), dim=2)
-            v = torch.cat((pv,v), dim=2)
+            if prompt_type == "prefix":
+                pk, pv = prompt
+                pk = pk.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+                pv = pv.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+                k = torch.cat((pk,k), dim=2)
+                v = torch.cat((pv,v), dim=2)
+            elif prompt_type == "tuning":
+                p = prompt[0]
+                p = p.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+                k = torch.cat((p,k), dim=2)
+                v = torch.cat((p,v), dim=2)
+                q = torch.cat((p,q), dim=2)
+                prompt_length = p.shape[1]
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
@@ -79,9 +93,18 @@ class Attention(nn.Module):
             self.save_attention_map(attn)
             attn.register_hook(self.save_attn_gradients)        
 
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        if prompt_type == "prefix":
+            x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        elif prompt_type == "tuning":
+            x = (attn @ v).transpose(1, 2).reshape(B, N + prompt_length, C)
         x = self.proj(x)
         x = self.proj_drop(x)
+
+        if prompt_type == "tuning":
+            x = x[:,prompt_length:,:]
+
+        assert x.shape == (B, N, C), "x.shape != (B, N, C)"
+
         return x
 
 
