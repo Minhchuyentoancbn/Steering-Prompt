@@ -365,8 +365,8 @@ class CPP(nn.Module):
         self.mlp_head = nn.Sequential(
             nn.Linear(768, 2048),
             nn.ReLU(),
-            nn.Linear(2048, 2048),
-            nn.ReLU(),
+            # nn.Linear(2048, 2048),
+            # nn.ReLU(),
             nn.Linear(2048, 768)
         )
 
@@ -607,10 +607,8 @@ class ViTFree(nn.Module):
             out = out.view(out.size(0), -1).cpu()
             values[:, i, :] = out
 
-        # values = F.normalize(values, dim=2)
         # Compute the distance between value features and value prototypes
         value_prototypes = self.value_prototypes[:max_idx]
-        # value_prototypes = F.normalize(value_prototypes, dim=1)
         # Compute distance of each value prototype to each value features
         # values: (B, r, d_k), value_prototypes: (C, d_k) -> (B, C)
         dist = torch.cdist(values, value_prototypes)  # (B, r, C)
