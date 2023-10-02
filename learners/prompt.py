@@ -154,6 +154,7 @@ class CPP(Prompt):
         else:
             params_to_opt = list(self.model.prompt.parameters())
         print(f'Number of parameters: {sum(p.numel() for p in params_to_opt)}')
+        
         print('*****************************************')
         optimizer_arg = {'params':params_to_opt,
                          'lr':self.config['lr'],
