@@ -1,7 +1,3 @@
-#TODO
-# - update compute distance between value protoypes so that each task counts only once
-
-
 import os
 import numpy as np
 import random
