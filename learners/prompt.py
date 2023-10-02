@@ -184,36 +184,38 @@ class CPP(Prompt):
     def update_model(self, inputs, targets):
         # Output embedding
         out, _ = self.model(inputs, train=True, pen=False)
-
         # Loss
         try:
             previous_prototype = self.model.sample_prototypes()
         except:
             previous_prototype = self.model.module.sample_prototypes()
         total_loss = self.criterion(out, targets.long(), previous_prototype)
-
         # step
         self.optimizer.zero_grad()
         total_loss.backward()
         self.optimizer.step()
-
         return total_loss.detach(), out
+    
     
     def criterion(self, embeddings, targets, previous_prototype):
         loss = self.criterion_fn(embeddings, targets, previous_prototype)
         return loss
     
+
     def predict(self, inputs):
         self.model.eval()
         out = self.model.predict(inputs)
         return out        # Output classes
     
+
     def forward(self, x, pen=False, train=False):
         return self.model.forward(x, pen=pen, train=train)
     
+
     def reset_model(self):
         # Reset MLP head
         self.model.prompt.reset_head()
+
 
     def learn_batch(self, train_loader, train_dataset, model_save_dir, val_loader=None):
         # try to load model
@@ -256,7 +258,6 @@ class CPP(Prompt):
                     # measure elapsed time
                     batch_time.update(batch_timer.toc())  
                     batch_timer.tic()
-                    
                     # record loss
                     y = y.detach()
                     losses.update(loss,  y.size(0)) 
