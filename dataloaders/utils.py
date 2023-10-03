@@ -18,8 +18,8 @@ def get_transform(dataset='CIFAR100', phase='test'):
     transform_list = []
 
     # get mean and std
-    dset_mean = dataset_stats[dataset]['mean'] # (0.0, 0.0, 0.0)
-    dset_std =  dataset_stats[dataset]['std']  # (1.0, 1.0, 1.0)
+    dset_mean = (0.0, 0.0, 0.0) # dataset_stats[dataset]['mean']
+    dset_std = (1.0, 1.0, 1.0) # dataset_stats[dataset]['std'] 
 
 
     if phase == 'train':
@@ -27,7 +27,7 @@ def get_transform(dataset='CIFAR100', phase='test'):
             transforms.RandomResizedCrop(224),  # Random resized crop to 224
             transforms.RandomHorizontalFlip(),  # Random horizontal flip
             transforms.RandomApply([
-                transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)
+                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
             ], p=0.8),  # Random color jitter
             transforms.RandomGrayscale(p=0.2),  # Random grayscale
             transforms.RandomApply([
