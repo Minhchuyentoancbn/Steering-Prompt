@@ -2,14 +2,14 @@ dataset: CIFAR100
 first_split_size: 10
 other_split_size: 10
 schedule:
-- 50
+- 2
 schedule_type: cosine_torch
 batch_size: 128
 optimizer: AdamW
 lr: 0.001
 momentum: 0.9
 weight_decay: 0
-temp: 0.6
+temp: 0.2
 model_type: zoo
 model_name: vit_free_imnet
 max_task: -1
