@@ -53,7 +53,7 @@ class ContrastivePrototypicalLoss(nn.Module):
         #                          torch.log(torch.sum(torch.exp(z_dot_z_T) * mask_for_different_classes, dim=1, keepdim=True)))
         loss_for_each_instance = (-1 / torch.sum(mask_for_same_classes, dim=1, keepdim=True)).reshape(-1, 1) * \
                                  (torch.sum(z_dot_z_T * mask_for_same_classes, dim=1, keepdim=True) -
-                                 torch.log(torch.sum(torch.exp(z_dot_z_T), dim=1, keepdim=True) - z_dot_z_T[torch.arange(batch_size), torch.arange(batch_size)]))
+                                 torch.log(torch.sum(torch.exp(z_dot_z_T), dim=1, keepdim=True) - z_dot_z_T[torch.arange(batch_size), torch.arange(batch_size)].reshape(-1, 1)))
         try:
             assert loss_for_each_instance.shape == (batch_size, 1), "loss_for_each_instance.shape != (batch_size, 1)"
         except AssertionError:
