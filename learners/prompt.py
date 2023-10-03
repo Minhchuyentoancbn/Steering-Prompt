@@ -357,7 +357,7 @@ class CPP(Prompt):
         model.train(orig_mode)
 
         if verbal:
-            self.log(' * Val Acc {acc.avg:.3f}, Total time {time:.2f}'
+            self.log(' * Val Acc {acc.avg}, Total time {time:.2f}'
                     .format(acc=acc, time=batch_timer.toc()))
         return acc.avg
     
