@@ -32,7 +32,6 @@ def create_args():
     parser.add_argument('--oracle_flag', default=False, action='store_true', help='Upper bound for oracle')
     parser.add_argument('--upper_bound_flag', default=False, action='store_true', help='Upper bound')
     parser.add_argument('--memory', type=int, default=0, help="size of memory for replay")
-    parser.add_argument('--temp', type=float, default=2., help="temperature for distillation")
     parser.add_argument('--DW', default=False, action='store_true', help='dataset balancing')
     parser.add_argument('--prompt_param', nargs="+", type=float, default=[1, 1, 1],
                          help="e prompt pool size, e prompt length, g prompt length")
