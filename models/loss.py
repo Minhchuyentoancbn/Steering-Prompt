@@ -8,6 +8,7 @@ class ContrastivePrototypicalLoss(nn.Module):
     """
     def __init__(self, temperature=0.6, reduction="mean"):
         super(ContrastivePrototypicalLoss, self).__init__()
+        print('Temperature: ', temperature)
         self.temperature = temperature
         self.reduction = reduction
         self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
