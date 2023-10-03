@@ -18,8 +18,8 @@ def get_transform(dataset='CIFAR100', phase='test'):
     transform_list = []
 
     # get mean and std
-    dset_mean = (0.0, 0.0, 0.0) # dataset_stats[dataset]['mean']
-    dset_std = (1.0, 1.0, 1.0) # dataset_stats[dataset]['std']
+    dset_mean = dataset_stats[dataset]['mean'] # (0.0, 0.0, 0.0)
+    dset_std =  dataset_stats[dataset]['std']  # (1.0, 1.0, 1.0)
 
 
     if phase == 'train':
