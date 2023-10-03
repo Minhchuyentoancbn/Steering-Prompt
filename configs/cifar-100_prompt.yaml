@@ -9,7 +9,7 @@ optimizer: AdamW
 lr: 0.001
 momentum: 0.9
 weight_decay: 0
-temp: 0.1
+temp: 0.3
 model_type: zoo
 model_name: vit_free_imnet
 max_task: -1
