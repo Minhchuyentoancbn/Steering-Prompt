@@ -581,7 +581,7 @@ class ViTFree(nn.Module):
         """
         Predict the class of the input
         """
-        print(f'Model task id: {self.task_id}')
+        # print(f'Model task id: {self.task_id}')
 
         B = x.shape[0]
         # Get query features
@@ -608,13 +608,13 @@ class ViTFree(nn.Module):
                 out, _ = self.feat(x, prompt=self.prompt, q=q, train=False, task_id=task_id)
             out = out[:, 0, :]
             out = out.view(out.size(0), -1).cpu()
-            # out = F.normalize(out, dim=1)
+            out = F.normalize(out, dim=1)
             task_value[torch.arange(B), top_task[:, i]] = out
             mask[torch.arange(B), top_task[:, i]] = 1
 
         # Compute the distance between value features and value prototypes
         value_prototypes = self.value_prototypes[:max_idx]
-        # value_prototypes = F.normalize(value_prototypes, dim=1)
+        value_prototypes = F.normalize(value_prototypes, dim=1)
         dist = torch.cdist(task_value, value_prototypes)  # (B, T, C)
         dist = dist * mask.unsqueeze(-1)
 
