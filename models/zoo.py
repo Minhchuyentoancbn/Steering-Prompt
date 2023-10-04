@@ -581,6 +581,8 @@ class ViTFree(nn.Module):
         """
         Predict the class of the input
         """
+        print(f'Model task id: {self.task_id}')
+
         B = x.shape[0]
         # Get query features
         q = self.get_query_features(x)
