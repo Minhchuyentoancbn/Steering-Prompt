@@ -134,9 +134,11 @@ class CPP(Prompt):
         super(CPP, self).__init__(learner_config)
         self.num_cls_per_task = learner_config['num_classes'] // 10
         self.batch_size = learner_config['batch_size']
+        self.cl_neg = learner_config['cl_negative']
         self.criterion_fn = ContrastivePrototypicalLoss(
             temperature=learner_config['temp'],
-            reduction="mean"
+            reduction="mean",
+            cl_negative=self.cl_neg
         )
 
     def create_model(self):

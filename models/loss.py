@@ -6,12 +6,14 @@ class ContrastivePrototypicalLoss(nn.Module):
     """
     Loss function in CPP
     """
-    def __init__(self, temperature=0.6, reduction="mean"):
+    def __init__(self, temperature=0.6, reduction="mean", cl_negative=0):
         super(ContrastivePrototypicalLoss, self).__init__()
         print('Temperature: ', temperature)
         self.temperature = temperature
         self.reduction = reduction
+        self.cl_negative = cl_negative
         self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
     def forward(self, z_feature, label, previous_prototype=None):
 
@@ -51,8 +53,12 @@ class ContrastivePrototypicalLoss(nn.Module):
         z_dot_z_T = z_dot_z_T - max_z_dot_z_T.detach()
         num_positive = torch.sum(mask_for_same_classes, dim=1, keepdim=True)
         positive_logits = torch.sum(z_dot_z_T * mask_for_same_classes, dim=1, keepdim=True)
+        negative_logits = torch.exp(z_dot_z_T) * mask_for_different_classes
+        if self.cl_negative > 0:
+            # Take top-k negative logits only
+            negative_logits, _ = torch.topk(negative_logits, self.cl_negative, dim=1)
         loss_for_each_instance = (-1 / num_positive).reshape(-1, 1) * positive_logits + \
-                                 torch.log(torch.sum(torch.exp(z_dot_z_T) * mask_for_different_classes, dim=1, keepdim=True))
+                                 torch.log(torch.sum(negative_logits, dim=1, keepdim=True))
   
         try:
             assert loss_for_each_instance.shape == (batch_size, 1), "loss_for_each_instance.shape != (batch_size, 1)"
